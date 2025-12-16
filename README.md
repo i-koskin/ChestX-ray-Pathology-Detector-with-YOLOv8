@@ -23,39 +23,39 @@
 
 ## 📁 Структура проекта
 
-ChestX-ray-Pathology-Detector-with-YOLOv8/
+      ChestX-ray-Pathology-Detector-with-YOLOv8/
 
-├── chestxray_yolo /         # Папка с размеченными изображениями и аннотациями для обучения модели YOLO
-
-   └── images /
-
-   └── labels /
-
-   └── data.yaml
-
-├── dataset / 
-
-   └── images               # Папка с изображениями соответствующими BBox_List_2017.csv
-
-├── runs /                  
-
-    └── detect /             
-
-      └── train /
-
-        └── weights /
-
-          └── best.pt         # Дообученная модель YOLOv8
-
-├── dataset_prepare.py       # Модуль подготовки датасета
-
-├── extract_bbox_images.py   # Модуль для извлечения bbox из изображений
-
-├── train_model.py           # Модуль запуска обучения модели YOLOv8
-
-├── requirements.txt         # Зависимости проекта
-
-└── README.md                # Документация
+      ├── chestxray_yolo /         # Папка с размеченными изображениями и аннотациями для обучения модели YOLO
+      
+         └── images /
+      
+         └── labels /
+      
+         └── data.yaml
+      
+      ├── dataset / 
+      
+         └── images               # Папка с изображениями соответствующими BBox_List_2017.csv
+      
+      ├── runs /                  
+      
+          └── detect /             
+      
+            └── train /
+      
+              └── weights /
+      
+                └── best.pt         # Дообученная модель YOLOv8
+      
+      ├── dataset_prepare.py       # Модуль подготовки датасета
+      
+      ├── extract_bbox_images.py   # Модуль для извлечения bbox из изображений
+      
+      ├── train_model.py           # Модуль запуска обучения модели YOLOv8
+      
+      ├── requirements.txt         # Зависимости проекта
+      
+      └── README.md                # Документация
 
 
 ## 🛠️ Установка
