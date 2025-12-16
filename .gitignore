@@ -68,3 +68,6 @@ Desktop.ini
 !chestxray_binary/*
 !runs/*
 !dataset/images/*
+!runs/detect/*
+!runs/detect/train/*
+!!runs/detect/train/weights/*
