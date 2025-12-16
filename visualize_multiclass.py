@@ -2,24 +2,66 @@ import cv2
 import numpy as np
 from ultralytics import YOLO
 import random
+import json
 from pathlib import Path
 
 
 def generate_colors(n):
     """Генерирует n различных цветов в формате BGR."""
     random.seed(42)
-    colors = []
-    for i in range(n):
-        color = (random.randint(0, 255), random.randint(
-            0, 255), random.randint(0, 255))
-        colors.append(color)
-    return colors
+    return [(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)) for _ in range(n)]
+
+
+def save_yolo_labels(boxes, class_names, image_shape, output_txt_path):
+    """Сохраняет предсказания в формате YOLO (нормализованные координаты)."""
+    h_img, w_img = image_shape[:2]
+    with open(output_txt_path, "w") as f:
+        for box in boxes:
+            cls_id = int(box.cls[0].item())
+            x1, y1, x2, y2 = box.xyxy[0].tolist()
+            conf = box.conf[0].item()
+
+            # Преобразуем в центр, ширину, высоту
+            x_center = (x1 + x2) / 2 / w_img
+            y_center = (y1 + y2) / 2 / h_img
+            w_norm = (x2 - x1) / w_img
+            h_norm = (y2 - y1) / h_img
+
+            f.write(
+                f"{cls_id} {x_center:.6f} {y_center:.6f} {w_norm:.6f} {h_norm:.6f} {conf:.6f}\n")
+
+
+def save_predictions_json(boxes, class_names, output_json_path):
+    """Сохраняет предсказания в читаемом JSON-формате."""
+    predictions = []
+    for box in boxes:
+        cls_id = int(box.cls[0].item())
+        x1, y1, x2, y2 = map(float, box.xyxy[0].tolist())
+        conf = float(box.conf[0].item())
+        class_name = class_names[cls_id] if cls_id < len(
+            class_names) else f"Unknown({cls_id})"
+
+        predictions.append({
+            "class_id": cls_id,
+            "class_name": class_name,
+            "confidence": round(conf, 4),
+            "bbox_xyxy": [round(x1, 2), round(y1, 2), round(x2, 2), round(y2, 2)],
+            "bbox_cxcywh": [
+                round((x1 + x2) / 2, 2),
+                round((y1 + y2) / 2, 2),
+                round(x2 - x1, 2),
+                round(y2 - y1, 2)
+            ]
+        })
+
+    with open(output_json_path, "w", encoding="utf-8") as f:
+        json.dump(predictions, f, indent=2, ensure_ascii=False)
 
 
 def visualize_multiclass_prediction(
     model_path: str,
     image_path: str,
-    output_path: str = "prediction_multiclass.jpg",
+    results_dir: str = "results",
     class_names: list = None,
     conf_threshold: float = 0.25,
     box_thickness: int = 2,
@@ -27,101 +69,92 @@ def visualize_multiclass_prediction(
     text_thickness: int = 1
 ):
     """
-    Визуализация предсказаний YOLOv8 с поддержкой многоклассовой детекции.
+    Визуализация и сохранение результатов в папку results/.
 
-    Args:
-        model_path: путь к .pt файлу модели
-        image_path: путь к входному изображению
-        output_path: куда сохранить результат
-        class_names: список имён классов (если None — попытается загрузить из модели)
-        conf_threshold: минимальная уверенность для отображения bbox
+    Сохраняет:
+      - results/images/{name}.jpg       → изображение с bbox
+      - results/labels/{name}.txt       → аннотации в формате YOLO + уверенность
+      - results/json/{name}.json        → подробные предсказания в JSON
     """
-    # Загрузка модели
+    # Настройка путей
+    results_path = Path(results_dir)
+    (results_path / "images").mkdir(parents=True, exist_ok=True)
+    (results_path / "labels").mkdir(parents=True, exist_ok=True)
+    (results_path / "json").mkdir(parents=True, exist_ok=True)
+
+    image_path = Path(image_path)
+    stem = image_path.stem
+
+    output_image = results_path / "images" / f"{stem}.jpg"
+    output_txt = results_path / "labels" / f"{stem}.txt"
+    output_json = results_path / "json" / f"{stem}.json"
+
+    # Загрузка модели и изображения
     model = YOLO(model_path)
-
-    # Если имена классов не заданы — берём из модели
-    if class_names is None:
-        if hasattr(model.model, 'names'):
-            class_names = model.model.names
-        else:
-            # Резервный вариант: генерируем Class_0, Class_1...
-            nc = model.model.yaml.get('nc', 1) if hasattr(
-                model.model, 'yaml') else 1
-            class_names = [f"Class_{i}" for i in range(nc)]
-
-    # Загрузка изображения
-    image = cv2.imread(image_path)
+    image = cv2.imread(str(image_path))
     if image is None:
         raise FileNotFoundError(
             f"Не удалось загрузить изображение: {image_path}")
+
+    # Имена классов
+    if class_names is None:
+        class_names = getattr(model.model, 'names', [
+                              f"Class_{i}" for i in range(1)])
 
     # Предсказание
     results = model(image)
     result = results[0]
 
-    # Генерация цветов (по одному на класс)
+    # Аннотированное изображение
+    annotated_image = image.copy()
     colors = generate_colors(len(class_names))
 
-    # Копия изображения для аннотаций
-    annotated_image = image.copy()
+    valid_boxes = []
+    if result.boxes is not None:
+        for box in result.boxes:
+            if box.conf[0].item() >= conf_threshold:
+                valid_boxes.append(box)
 
-    if result.boxes is not None and len(result.boxes) > 0:
-        boxes = result.boxes
-        for box in boxes:
-            conf = box.conf[0].item()
-            if conf < conf_threshold:
-                continue
+    # Визуализация на изображении
+    for box in valid_boxes:
+        conf = box.conf[0].item()
+        x1, y1, x2, y2 = map(int, box.xyxy[0].tolist())
+        cls_id = int(box.cls[0].item())
 
-            x1, y1, x2, y2 = map(int, box.xyxy[0].tolist())
-            cls_id = int(box.cls[0].item())
+        color = colors[cls_id] if cls_id < len(colors) else (0, 0, 255)
+        label = f"{class_names[cls_id] if cls_id < len(class_names) else 'Unknown'}: {conf:.2f}"
 
-            # Защита от выхода за границы
-            if cls_id >= len(class_names):
-                label = f"Unknown({cls_id}): {conf:.2f}"
-                color = (0, 0, 255)  # красный для неизвестного
-            else:
-                label = f"{class_names[cls_id]}: {conf:.2f}"
-                color = colors[cls_id]
+        cv2.rectangle(annotated_image, (x1, y1),
+                      (x2, y2), color, box_thickness)
+        (w, h), _ = cv2.getTextSize(
+            label, cv2.FONT_HERSHEY_SIMPLEX, font_scale, text_thickness)
+        cv2.rectangle(annotated_image, (x1, y1 - h - 10),
+                      (x1 + w, y1), color, -1)
+        cv2.putText(annotated_image, label, (x1, y1 - 5),
+                    cv2.FONT_HERSHEY_SIMPLEX, font_scale, (255, 255, 255), text_thickness)
 
-            # Рисуем bounding box
-            cv2.rectangle(annotated_image, (x1, y1),
-                          (x2, y2), color, box_thickness)
+        print(f"{label} | ({x1}, {y1}) - ({x2}, {y2})")
 
-            # Размер текста
-            (text_w, text_h), _ = cv2.getTextSize(
-                label, cv2.FONT_HERSHEY_SIMPLEX, font_scale, text_thickness)
+    if not valid_boxes:
+        print("⚠️ Никаких объектов не обнаружено.")
 
-            # Фон для текста
-            cv2.rectangle(annotated_image, (x1, y1 - text_h - 10),
-                          (x1 + text_w, y1), color, -1)
+    # Сохранение результатов
+    cv2.imwrite(str(output_image), annotated_image)
+    save_yolo_labels(valid_boxes, class_names, image.shape, output_txt)
+    save_predictions_json(valid_boxes, class_names, output_json)
 
-            # Текст (белый)
-            cv2.putText(
-                annotated_image, label,
-                (x1, y1 - 5),
-                cv2.FONT_HERSHEY_SIMPLEX,
-                font_scale,
-                (255, 255, 255),
-                text_thickness
-            )
-
-            print(
-                f"{class_names[cls_id] if cls_id < len(class_names) else 'Unknown'}: {conf:.2f} | ({x1}, {y1}) - ({x2}, {y2})")
-    else:
-        print("⚠️ Объектов не обнаружено.")
-
-    # Сохраняем результат
-    cv2.imwrite(output_path, annotated_image)
-    print(f"✅ Результат сохранён: {output_path}")
+    print(f"\n✅ Результаты сохранены в папку: {results_dir}/")
+    print(f"   Изображение: {output_image}")
+    print(f"   Аннотации:   {output_txt}")
+    print(f"   JSON:        {output_json}")
 
 
 if __name__ == "__main__":
-
     CLASS_NAMES = [
         "Atelectasis",
         "Cardiomegaly",
         "Effusion",
-        "Infiltare",
+        "Infiltrare",
         "Mass",
         "Nodule",
         "Pneumonia",
@@ -131,7 +164,7 @@ if __name__ == "__main__":
     visualize_multiclass_prediction(
         model_path="./runs/detect/train/weights/best.pt",
         image_path="patient_chest_xray.png",
-        output_path="multiclass_result.jpg",
+        results_dir="results",
         class_names=CLASS_NAMES,
         conf_threshold=0.25
     )
