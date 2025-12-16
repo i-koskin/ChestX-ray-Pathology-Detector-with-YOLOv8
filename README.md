@@ -102,7 +102,7 @@ python train_model.py
 ```python
 from ultralytics import YOLO
 
-model = YOLO("models/runs/binary_yolov8s/weights/best.pt")
+model = YOLO("./runs/detect/train/weights/best.pt")
 results = model("patient_chest_xray.png")
 
 # Показать результат
