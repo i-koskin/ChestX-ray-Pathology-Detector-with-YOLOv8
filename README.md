@@ -119,4 +119,9 @@ for box in boxes:
     print(f"Аномалия: {conf:.2f} | Координаты: ({x1:.0f}, {y1:.0f}) - ({x2:.0f}, {y2:.0f})")
 ```
 
+## 📚 Источники данных
+
+[NIH ChestX-ray14 Dataset](https://nihcc.app.box.com/v/ChestXray-NIHCC) - Датасет
+
+[BBox_List_2017.csv](https://nihcc.app.box.com/v/ChestXray-NIHCC/file/219760940956?spm=a2ty_o01.29997173.0.0.7b405171IYbkfu) - BBox аннотации
 
