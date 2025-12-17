@@ -39,7 +39,7 @@ def extract_images(
         archive_path = Path(archives_dir) / archive_name
 
         if not archive_path.exists():
-            print(f"⚠️ Архив {archive_name} не найден — пропускаем.")
+            print(f"⚠️ Архив {archive_name} не найден.")
             continue
 
         try:
@@ -80,19 +80,19 @@ def extract_images(
             print(f"  - {img}")
     else:
         print(
-            f"🎉 Все {len(found_images)} изображений успешно извлечены в {output_dir}")
+            f"Все {len(found_images)} изображений успешно извлечены в {output_dir}")
 
 
 # ================ ЗАПУСК ================
 if __name__ == "__main__":
 
-    CSV_PATH = "BBox_List_2017.csv"          # путь к CSV с аннотациями
-    ARCHIVES_DIR = "./dataset"               # папка с images_001.tar.gz и т.д.
-    OUTPUT_DIR = "dataset/images"            # куда сохранять изображения
+    CSV_PATH = "BBox_List_2017.csv"
+    ARCHIVES_DIR = "./dataset"
+    OUTPUT_DIR = "dataset/images"
 
     extract_images(
         csv_path=CSV_PATH,
         archives_dir=ARCHIVES_DIR,
         output_dir=OUTPUT_DIR,
-        max_archives=12  # NIH использует 12 архивов
+        max_archives=12  # используем 12 архивов из NIH
     )
