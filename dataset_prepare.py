@@ -37,6 +37,7 @@ def prepare_dataset_with_median_oversampling(
         random_seed: для воспроизводимости
     """
     # 1. Настройка путей
+    Path(output_dir).mkdir(parents=True, exist_ok=True)
     for split in ["train", "val"]:
         (output_dir / "images" / split).mkdir(parents=True, exist_ok=True)
         (output_dir / "labels" / split).mkdir(parents=True, exist_ok=True)
@@ -101,7 +102,7 @@ def prepare_dataset_with_median_oversampling(
     print(f"  Train изображений (с копиями): {len(train_with_repeats)}")
     print(f"  Val изображений (оригиналы):   {len(val_ids)}")
 
-    # 8. Вспомогательная функция: копирование изображения и создание .txt ===
+    # 8. Копирование изображения и создание .txt
     def copy_image_and_label(img_id: str, split: str, copy_id: int = None):
         src_img = images_src_dir / img_id
         if not src_img.exists():
@@ -129,6 +130,7 @@ def prepare_dataset_with_median_oversampling(
                 y = row['y']
                 w = row['w']
                 h = row['h]']
+
                 # Нормализуем
                 xc = (x + w / 2) / w_img
                 yc = (y + h / 2) / h_img
@@ -156,14 +158,15 @@ names: {CLASSES}
         f.write(yaml_content)
 
     print(f"\n✅ Датасет сохранён в: {output_dir}")
+    print(f"   Изображений в train: {len(train_with_repeats)}")
+    print(f"   Изображений в val:   {len(val_ids)}")
 
 
 if __name__ == "__main__":
 
-    # Пути
-    OUTPUT_DIR = Path("chestxray_yolo")
-    IMG_SRC = Path("./dataset/images")
     CSV_PATH = "./BBox_List_2017.csv"
+    IMG_SRC = Path("./dataset/images")
+    OUTPUT_DIR = Path("chestxray_yolo")
 
     prepare_dataset_with_median_oversampling(
         csv_path=CSV_PATH,
