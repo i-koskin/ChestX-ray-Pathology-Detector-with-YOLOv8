@@ -71,3 +71,4 @@ Desktop.ini
 !runs/detect/*
 !runs/detect/train/*
 !!runs/detect/train/weights/*
+!assets/*
