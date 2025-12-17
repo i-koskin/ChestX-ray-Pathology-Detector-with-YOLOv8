@@ -108,7 +108,6 @@ python visualize_multiclass.py
 ```
 ## 📚 Источники данных
 
-[NIH ChestX-ray14 Dataset](https://nihcc.app.box.com/v/ChestXray-NIHCC) - Датасет
+Датасет: [NIH ChestX-ray14 Dataset](https://nihcc.app.box.com/v/ChestXray-NIHCC)
 
-[BBox_List_2017.csv](https://nihcc.app.box.com/v/ChestXray-NIHCC/file/219760940956?spm=a2ty_o01.29997173.0.0.7b405171IYbkfu) - BBox аннотации
-
+BBox аннотации: [BBox_List_2017.csv](https://nihcc.app.box.com/v/ChestXray-NIHCC/file/219760940956)
