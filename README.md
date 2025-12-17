@@ -85,12 +85,12 @@
 ]
 ```
 
-## 🖼️ Визуализация результатов обучения модели
+## 🖼️ Визуализированные результаты обучения модели
 
       ChestX-ray-Pathology-Detector-with-YOLOv8/
-      ├── runs /                  
-         └── detect /             
-            └── train /
+            └── runs/                  
+               └── detect/             
+                  └── train/
 
 ## 🛠️ Установка
 
@@ -120,21 +120,23 @@ pip install -r requirements.txt
 ### 1. Извлечение bbox из изображений:
 
 ```bash
-python .\extract_bbox_images.py
+python extract_bbox_images.py
 ```
 ### 2. Подготовка датасета для обучения модели:
 
 ```bash
-python .\dataset_prepare.py
+python dataset_prepare.py
 ```
 ### 3. Обучение модели
 
 ```bash
-python train_model.py
+python train_model.py ----dataset_dir chestxray_yolo --model_size s --epochs 50 --imgsz 640 --batch 16
 ```
-⚙️ Аргументы командной строки:
+⚙️ *Аргументы командной строки:*
 
-
+<p align="left">
+<img src="assets/train_model_command_line.JPG")>
+</p>
 
 ### 4. Использование модели:
 
