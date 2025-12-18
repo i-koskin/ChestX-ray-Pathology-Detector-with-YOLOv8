@@ -130,7 +130,7 @@ python dataset_prepare.py
 ### 3. Обучение модели
 
 ```bash
-python train_model.py ----dataset_dir chestxray_yolo --model_size s --epochs 50 --imgsz 640 --batch 16
+python train_model.py --dataset_dir chestxray_yolo --model_size s --epochs 50 --imgsz 640 --batch 16
 ```
 ⚙️ *Аргументы командной строки:*
 
