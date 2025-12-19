@@ -132,11 +132,15 @@ python dataset_prepare.py
 ```bash
 python train_model.py --dataset_dir chestxray_yolo --model_size s --epochs 50 --imgsz 640 --batch 16
 ```
-⚙️ *Аргументы командной строки:*
+⚙️ *При необходимости откорректируйте значения соответствующих аргументов командной строки:*
 
-<p align="left">
-<img src="assets/train_model_command_line.JPG")>
-</p>
+|*Аргумент*|*Описание*|*Значение по умолчанию*|
+|-|-|-|
+|--dataset_dir|Папка с размеченным датасетом|chestxray_yolo|
+|--model_size|Размер модели YOLO: n, s, m, l, x|s|
+|--epochs|Количество эпох обучения|50|
+|--imgsz|Размер изображения|640|
+|--batch|Размер батча|16|
 
 ### 4. Использование модели:
 
