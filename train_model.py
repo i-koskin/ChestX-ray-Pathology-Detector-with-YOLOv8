@@ -13,8 +13,7 @@ def train_model(dataset_dir: str, model_size: str, epochs: int, imgsz: int, batc
         imgsz=imgsz,
         batch=batch,
         fliplr=0.5,
-        flipud=0.0,
-        device=0 if Path("/usr/bin/nvidia-smi").exists() else "cpu"
+        flipud=0.0
     )
     print(f"✅ Обучение завершено. Веса: ./runs/detect/train/weights/best.pt")
 
