@@ -65,7 +65,11 @@ Desktop.ini
 
 !requirements.txt
 !chestxray_yolo/*
+!chestxray_yolo/images/*
+!chestxray_yolo/labels/*
 !chestxray_yolo_binary/*
+!chestxray_yolo_binary/images/*
+!chestxray_yolo_binary/labels/*
 !runs/*
 !dataset/images/*
 !runs/detect/*
