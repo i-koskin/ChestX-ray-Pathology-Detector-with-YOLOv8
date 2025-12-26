@@ -1,7 +1,7 @@
 task: detect
 mode: train
 model: yolov8m.pt
-data: ./chestxray_yolo/data.yaml
+data: chestxray_yolo\data.yaml
 epochs: 50
 time: null
 patience: 100

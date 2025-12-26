@@ -19,7 +19,7 @@ CLASSES = [
 ]
 
 
-def prepare_dataset_with_median_oversampling(
+def prepare_dataset_with_oversampling(
         csv_path: str,
         images_src_dir: str,
         output_dir: str,
@@ -61,28 +61,37 @@ def prepare_dataset_with_median_oversampling(
     for cls, cnt in sorted(class_counts.items()):
         print(f"  {cls:15}: {cnt}")
 
-    # 4. Вычисление целевого значения — медиана
-    counts_list = list(class_counts.values())
-    target_count = int(pd.Series(counts_list).median())
-    print(f"\n🎯 Целевое количество на класс (медиана): {target_count}")
+    # 4. Вычисление целевого значения - максимум
+    max_count = max(class_counts.values())
+    print(f"\n🎯 Целевое количество на класс (max): {max_count}")
+
+    repeat_factors = {}
+    for cls in CLASSES:
+        count = class_counts[cls]
+        repeat_factors[cls] = max_count / \
+            max(count, 1)  # избегаем деления на 0
+
+    # 4*. Вычисление целевого значения - медиана
+    # counts_list = list(class_counts.values())
+    # target_count = int(pd.Series(counts_list).median())
+    # print(f"\n🎯 Целевое количество на класс (медиана): {target_count}")
+
+    # repeat_factors = {}
+    # for cls, cnt in class_counts.items():
+    #     if cnt >= target_count:
+    #         repeat_factors[cls] = 1.0  # не повторяем
+    #     else:
+    #         # Например: cnt=60, target=200 → factor ≈ 3.33 → ceil → 4
+    #         repeat_factors[cls] = target_count / cnt
 
     # 5. Вычисление коэффициентов повторения
-    repeat_factors = {}
-    for cls, cnt in class_counts.items():
-        if cnt >= target_count:
-            repeat_factors[cls] = 1.0  # не повторяем
-        else:
-            # Например: cnt=60, target=200 → factor ≈ 3.33 → ceil → 4
-            repeat_factors[cls] = target_count / cnt
-
-    # 6. Определение, сколько раз включать каждое изображение
     img_repeat_map = {}
     for img_id, labels in img_to_labels.items():
         # Берём максимальный фактор среди всех классов на изображении
         max_factor = max(repeat_factors[label] for label in labels)
         img_repeat_map[img_id] = math.ceil(max_factor)
 
-    # 7. Разделение на train/val (до oversampling!)
+    # 6. Разделение на train/val (до oversampling!)
     random.seed(random_seed)
     all_img_ids = list(img_to_labels.keys())
     random.shuffle(all_img_ids)
@@ -102,7 +111,7 @@ def prepare_dataset_with_median_oversampling(
     print(f"  Train изображений (с копиями): {len(train_with_repeats)}")
     print(f"  Val изображений (оригиналы):   {len(val_ids)}")
 
-    # 8. Копирование изображения и создание .txt
+    # 7. Копирование изображения и создание .txt
     def copy_image_and_label(img_id: str, split: str, copy_id: int = None):
         src_img = images_src_dir / img_id
         if not src_img.exists():
@@ -139,7 +148,7 @@ def prepare_dataset_with_median_oversampling(
                 cls_id = CLASSES.index(row['Finding Label'])
                 f.write(f"{cls_id} {xc:.6f} {yc:.6f} {wn:.6f} {hn:.6f}\n")
 
-    # 9. Обработка train и val
+    # 8. Обработка train и val
     print("\n📤 Копирование train...")
     for img_id, copy_id in train_with_repeats:
         copy_image_and_label(img_id, "train", copy_id)
@@ -148,7 +157,7 @@ def prepare_dataset_with_median_oversampling(
     for img_id in val_ids:
         copy_image_and_label(img_id, "val")
 
-    # 10. Создание data.yaml
+    # 9. Создание data.yaml
     yaml_content = f"""train: ./images/train
 val: ./images/val
 nc: {len(CLASSES)}
@@ -168,7 +177,7 @@ if __name__ == "__main__":
     IMG_SRC = Path("./dataset/images")
     OUTPUT_DIR = Path("chestxray_yolo")
 
-    prepare_dataset_with_median_oversampling(
+    prepare_dataset_with_oversampling(
         csv_path=CSV_PATH,
         images_src_dir=IMG_SRC,
         output_dir=OUTPUT_DIR

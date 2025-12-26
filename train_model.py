@@ -13,10 +13,9 @@ def train_model(dataset_dir: str, model_size: str, epochs: int, imgsz: int, batc
         imgsz=imgsz,
         batch=batch,
         fliplr=0.5,
-        flipud=0.0,
-        device=0 if Path("/usr/bin/nvidia-smi").exists() else "cpu"
+        flipud=0.0
     )
-    print(f"✅ Обучение завершено. Веса: ./runs/detect/train/weights/best.pt")
+    print(f"✅ Обучение завершено")
 
 
 def main():
@@ -24,8 +23,8 @@ def main():
         description="Пайплайн ChestX-ray детекции")
     parser.add_argument("--dataset_dir", type=str, default="chestxray_yolo",
                         help="Расположение размеченного датасета")
-    parser.add_argument("--model_size", type=str, default="s",
-                        choices=["n", "s", "m"], help="Версия модели YOLOv8")
+    parser.add_argument("--model_size", type=str, default="m",
+                        choices=["n", "s", "m", "l", "x"], help="Версия модели YOLOv8")
     parser.add_argument("--epochs", type=int, default=50)
     parser.add_argument("--imgsz", type=int, default=640)
     parser.add_argument("--batch", type=int, default=16)
