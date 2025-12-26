@@ -64,8 +64,8 @@ Desktop.ini
 # =================================
 
 !requirements.txt
-!chestxray/*
-!chestxray_binary/*
+!chestxray_yolo/*
+!chestxray_yolo_binary/*
 !runs/*
 !dataset/images/*
 !runs/detect/*
